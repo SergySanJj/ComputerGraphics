@@ -55,11 +55,16 @@ class SmoothConvex(Frame):
         self.update_view()
 
     def on_touch_right(self, event):
+        self.update_view()
         z = Point(event.x, event.y)
         if check_if_inside(z, self.hull, self.canv):
+            self.canv.create_text(200, 200, text="Inside",
+                                  anchor=SE, fill="red", font=("Purisa", 18))
             print("Inside")
         else:
             print("Outside")
+            self.canv.create_text(200, 200, text="Outside",
+                                  anchor=SE, fill="red", font=("Purisa", 18))
 
     def update_view(self):
         self.canv.delete("all")
@@ -74,11 +79,6 @@ class SmoothConvex(Frame):
         r = Point(l.x, l.y - 0.001)
         self.hull = quick_hull(l, r, self.vertexes, [])
         draw_hull(self.hull, self.canv)
-
-        median = hull_median(self.hull)
-        self.canv.create_oval(median.x - self.diam / 2, median.y - self.diam / 2, median.x + self.diam / 2,
-                              median.y + self.diam / 2, fill=self.point_color,
-                              width=4, outline="green")
 
     def on_clear(self):
         self.vertexes = []
@@ -143,11 +143,13 @@ def hull_median(hull: List[Point]) -> Point:
 
 def check_if_inside(z: Point, hull: List[Point], canvas: Canvas) -> bool:
     median = hull_median(hull)
+    canvas.create_oval(median.x - 5, median.y - 5, median.x + 5, median.y + 5, fill="black",
+                       width=4, outline="green")
     h = sorted(hull, key=lambda point: point.polar_angle(median))
     i = 0
     for p in h:
         canvas.create_text(p.x, p.y, text=str(i),
-                           anchor=SE, fill="red")
+                           anchor=SE, fill="red", font=("Purisa", 18))
         i += 1
     return inside_check(z, h, median, 0, len(h))
 
@@ -161,6 +163,7 @@ def inside_check(z: Point, hull: List[Point], median: Point, l, r) -> bool:
             p1 = i
             pp1 = i + 1
         s1, s2 = cross_product_orientation(z, median, hull[pp1]), cross_product_orientation(z, median, hull[p1])
+        print(s1,s2)
         if s1 > 0 and s2 < 0:
             print("got for i, i+1 ", p1, pp1)
             if cross_product_orientation(z, hull[p1], hull[pp1]) >= 0:
