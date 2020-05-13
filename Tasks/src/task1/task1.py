@@ -55,7 +55,6 @@ class SmoothConvex(Frame):
         l = left(self.vertexes)
         r = Point(l.x, l.y - 0.001)
         hull = quick_hull(l, r, self.vertexes, [])
-        print([p.x for p in hull])
         draw_hull(hull, self.canv)
 
     def on_clear(self):
@@ -77,9 +76,9 @@ def quick_hull(l: Point, r: Point, candidates: List[Point], quick_hull_res: List
                 best = len(actual_candidates) - 1
     if len(actual_candidates) > 0:
         chosen = actual_candidates[best]
-        quick_hull_res.append(chosen)
         del actual_candidates[best]
         quick_hull(l, chosen, actual_candidates, quick_hull_res)
+        quick_hull_res.append(chosen)
         quick_hull(chosen, r, actual_candidates, quick_hull_res)
 
     return quick_hull_res
@@ -100,6 +99,9 @@ def draw_hull(vertexes: List[Point], canvas: Canvas):
     for p in vertexes:
         line_values.append(p.x)
         line_values.append(p.y)
+    p = vertexes[0]
+    line_values.append(p.x)
+    line_values.append(p.y)
     canvas.create_line(line_values)
 
 
