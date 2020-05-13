@@ -52,8 +52,9 @@ class SmoothConvex(Frame):
                                   p.y + self.diam / 2, fill=self.point_color,
                                   width=2, outline=self.outline_color)
 
-        l, r = left(self.vertexes), right(self.vertexes)
-        hull = quick_hull(r, l, self.vertexes, []) + quick_hull(l, r, self.vertexes, [])
+        l = left(self.vertexes)
+        r = Point(l.x, l.y - 0.001)
+        hull = quick_hull(l, r, self.vertexes, [])
         print([p.x for p in hull])
         draw_hull(hull, self.canv)
 
@@ -69,7 +70,6 @@ def area(a: Point, b: Point, c: Point):
 def quick_hull(l: Point, r: Point, candidates: List[Point], quick_hull_res: List[Point]):
     best = 0
     actual_candidates: List[Point] = []
-    S1, S2 = [], []
     for candidate in candidates:
         if area(l, r, candidate) >= 0:
             actual_candidates.append(candidate)
@@ -79,10 +79,9 @@ def quick_hull(l: Point, r: Point, candidates: List[Point], quick_hull_res: List
         chosen = actual_candidates[best]
         quick_hull_res.append(chosen)
         del actual_candidates[best]
-
+        quick_hull(l, chosen, actual_candidates, quick_hull_res)
         quick_hull(chosen, r, actual_candidates, quick_hull_res)
 
-        quick_hull(l, chosen, actual_candidates, quick_hull_res)
     return quick_hull_res
 
 
@@ -90,14 +89,6 @@ def left(candidates: List[Point]):
     res = candidates[0]
     for p in candidates:
         if p.x < res.x:
-            res = p
-    return res
-
-
-def right(candidates: List[Point]):
-    res = candidates[0]
-    for p in candidates:
-        if p.x > res.x:
             res = p
     return res
 
