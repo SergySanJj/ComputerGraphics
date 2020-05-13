@@ -1,7 +1,10 @@
+import math
 import tkinter as tk
 from tkinter import *
 from typing import List
 
+
+# quick hull + point detection
 
 class Point:
     def __init__(self, x, y):
@@ -11,6 +14,12 @@ class Point:
     def is_duplicate(self, other):
         return self.x == other.x and self.y == other.y
 
+    def polar_angle(self, origin):
+        dx = self.x - origin.x
+        dy = self.y - origin.y
+        th = math.atan2(dy, dx)
+        return th
+
 
 class SmoothConvex(Frame):
     diam = 10
@@ -19,6 +28,7 @@ class SmoothConvex(Frame):
 
     def __init__(self, parent):
         self.vertexes = []
+        self.hull = []
 
         Frame.__init__(self, parent)
         self.parent = parent
@@ -35,6 +45,7 @@ class SmoothConvex(Frame):
                        sticky=E + W + S + N)
 
         self.canv.bind("<Button 1>", self.on_touch_left)
+        self.canv.bind("<Button 3>", self.on_touch_right)
 
         clear_button = Button(self, text="Clear", command=self.on_clear)
         clear_button.grid(row=1, column=1, padx=6, pady=6)
@@ -42,6 +53,13 @@ class SmoothConvex(Frame):
     def on_touch_left(self, event):
         self.vertexes.append(Point(event.x, event.y))
         self.update_view()
+
+    def on_touch_right(self, event):
+        z = Point(event.x, event.y)
+        if check_if_inside(z, self.hull, self.canv):
+            print("Inside")
+        else:
+            print("Outside")
 
     def update_view(self):
         self.canv.delete("all")
@@ -54,8 +72,13 @@ class SmoothConvex(Frame):
 
         l = left(self.vertexes)
         r = Point(l.x, l.y - 0.001)
-        hull = quick_hull(l, r, self.vertexes, [])
-        draw_hull(hull, self.canv)
+        self.hull = quick_hull(l, r, self.vertexes, [])
+        draw_hull(self.hull, self.canv)
+
+        median = hull_median(self.hull)
+        self.canv.create_oval(median.x - self.diam / 2, median.y - self.diam / 2, median.x + self.diam / 2,
+                              median.y + self.diam / 2, fill=self.point_color,
+                              width=4, outline="green")
 
     def on_clear(self):
         self.vertexes = []
@@ -103,6 +126,56 @@ def draw_hull(vertexes: List[Point], canvas: Canvas):
     line_values.append(p.x)
     line_values.append(p.y)
     canvas.create_line(line_values)
+
+
+def hull_median(hull: List[Point]) -> Point:
+    median: Point = Point(0, 0)
+    if len(hull) < 3:
+        return median
+    for i in range(0, 3):
+        p = hull[i]
+        median.x += p.x
+        median.y += p.y
+    median.x = median.x / 3
+    median.y = median.y / 3
+    return median
+
+
+def check_if_inside(z: Point, hull: List[Point], canvas: Canvas) -> bool:
+    median = hull_median(hull)
+    h = sorted(hull, key=lambda point: point.polar_angle(median))
+    i = 0
+    for p in h:
+        canvas.create_text(p.x, p.y, text=str(i),
+                           anchor=SE, fill="red")
+        i += 1
+    return inside_check(z, h, median, 0, len(h))
+
+
+def inside_check(z: Point, hull: List[Point], median: Point, l, r) -> bool:
+    for i in range(0, len(hull)):
+        if i == len(hull) - 1:
+            p1 = i
+            pp1 = 0
+        else:
+            p1 = i
+            pp1 = i + 1
+        s1, s2 = cross_product_orientation(z, median, hull[pp1]), cross_product_orientation(z, median, hull[p1])
+        if s1 > 0 and s2 < 0:
+            print("got for i, i+1 ", p1, pp1)
+            if cross_product_orientation(z, hull[p1], hull[pp1]) >= 0:
+                return False
+            else:
+                return True
+
+    return False
+
+
+def cross_product_orientation(a: Point, b: Point, c: Point):
+    return (b.y - a.y) * \
+           (c.x - a.x) - \
+           (b.x - a.x) * \
+           (c.y - a.y)
 
 
 def task1_runner():
