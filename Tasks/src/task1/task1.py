@@ -151,27 +151,38 @@ def check_if_inside(z: Point, hull: List[Point], canvas: Canvas) -> bool:
         canvas.create_text(p.x, p.y, text=str(i),
                            anchor=SE, fill="red", font=("Purisa", 18))
         i += 1
-    return inside_check(z, h, median, 0, len(h))
+    return inside_check(z, h, median)
 
 
-def inside_check(z: Point, hull: List[Point], median: Point, l, r) -> bool:
-    for i in range(0, len(hull)):
-        if i == len(hull) - 1:
-            p1 = i
-            pp1 = 0
+def inside_check(z: Point, hull: List[Point], median: Point) -> bool:
+    n = len(hull)
+    pq = Point(z.x - hull[0].x, z.y - hull[0].y)
+
+    l = 0
+    r = len(hull)
+    while r - l > 1:
+        mid = (l + r) // 2
+        cur = Point(hull[mid].x - hull[0].x, hull[mid].y - hull[0].y)
+        if cross_product(cur, pq) < 0:
+            r = mid
         else:
-            p1 = i
-            pp1 = i + 1
-        s1, s2 = cross_product_orientation(z, median, hull[pp1]), cross_product_orientation(z, median, hull[p1])
-        print(s1,s2)
-        if s1 > 0 and s2 < 0:
-            print("got for i, i+1 ", p1, pp1)
-            if cross_product_orientation(z, hull[p1], hull[pp1]) >= 0:
-                return False
-            else:
-                return True
+            l = mid
+    print("found between ", l, r)
 
-    return False
+    if l == n - 1:
+        return sq_dist(hull[0], z) <= sq_dist(hull[0], hull[l])
+    else:
+        left_vector = Point(hull[l + 1].x - hull[l].x, hull[l + 1].y - hull[l].y)
+        right_vector = Point(z.x - hull[l].x, z.y - hull[l].y)
+    return cross_product(left_vector, right_vector) >= 0
+
+
+def sq_dist(a, b):
+    return (a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y)
+
+
+def cross_product(a, b):
+    return a.x * b.y - b.x * a.y
 
 
 def cross_product_orientation(a: Point, b: Point, c: Point):
