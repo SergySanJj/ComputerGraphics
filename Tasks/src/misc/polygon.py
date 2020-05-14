@@ -4,7 +4,7 @@ from typing import List
 from src.misc.point import Point
 
 
-def draw_polygon(vertexes: List[Point], canvas: Canvas):
+def draw_polygon(vertexes: List[Point], canvas: Canvas, width=1):
     if len(vertexes) < 2:
         return
     line_values = []
@@ -14,4 +14,4 @@ def draw_polygon(vertexes: List[Point], canvas: Canvas):
     p = vertexes[0]
     line_values.append(p.x)
     line_values.append(p.y)
-    canvas.create_line(line_values)
+    canvas.create_line(line_values, width=width)
