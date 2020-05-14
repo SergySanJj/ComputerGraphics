@@ -38,9 +38,26 @@ def area(a: Point, b: Point, c: Point):
     return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x)
 
 
-def left(candidates: List[Point]) -> Point:
+def left_most(candidates: List[Point]) -> (Point, int):
+    i = 0
+    res_i = 0
     res = candidates[0]
     for p in candidates:
         if p.x < res.x:
             res = p
-    return res
+            res_i = i
+        i += 1
+    return res, res_i
+
+
+def left(a, b, c):
+    return area(a, b, c) > 0  # предикат проти годинникової стрілки
+
+
+def collinear(a, b, c):
+    return area(a, b, c) == 0  # перевірка трьох точок на коллінеарність
+
+
+def between(a, b, point):
+    return abs(point.x - a.x) <= abs(b.x - a.x) and abs(point.y - a.y) <= abs(
+        b.y - a.y)

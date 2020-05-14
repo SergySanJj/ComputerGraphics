@@ -3,7 +3,7 @@ import tkinter as tk
 from tkinter import *
 from typing import List
 
-from src.misc.point import Point, area, left
+from src.misc.point import Point, area, left_most
 from src.misc.polygon import draw_polygon
 
 
@@ -13,8 +13,8 @@ class SmoothConvex(Frame):
     outline_color = ''
 
     def __init__(self, parent):
-        self.vertexes = []
-        self.hull = []
+        self.vertexes: List[Point] = []
+        self.hull: List[Point] = []
 
         Frame.__init__(self, parent)
         self.parent = parent
@@ -61,7 +61,7 @@ class SmoothConvex(Frame):
                                   p.y + self.diam / 2, fill=self.point_color,
                                   width=2, outline=self.outline_color)
 
-        l = left(self.vertexes)
+        l = left_most(self.vertexes)
         r = Point(l.x, l.y - 0.001)
         self.hull = quick_hull(l, r, self.vertexes, [])
         draw_polygon(self.hull, self.canv)
