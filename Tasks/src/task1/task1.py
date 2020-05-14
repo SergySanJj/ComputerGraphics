@@ -3,22 +3,8 @@ import tkinter as tk
 from tkinter import *
 from typing import List
 
-
 # quick hull + point detection
-
-class Point:
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
-
-    def is_duplicate(self, other):
-        return self.x == other.x and self.y == other.y
-
-    def polar_angle(self, origin):
-        dx = self.x - origin.x
-        dy = self.y - origin.y
-        th = math.atan2(dy, dx)
-        return th
+from src.misc.point import Point, area, left
 
 
 class SmoothConvex(Frame):
@@ -57,14 +43,14 @@ class SmoothConvex(Frame):
     def on_touch_right(self, event):
         self.update_view()
         z = Point(event.x, event.y)
-        if check_if_inside(z, self.hull, self.canv):
-            self.canv.create_text(200, 200, text="Inside",
-                                  anchor=SE, fill="red", font=("Purisa", 18))
-            print("Inside")
-        else:
-            print("Outside")
-            self.canv.create_text(200, 200, text="Outside",
-                                  anchor=SE, fill="red", font=("Purisa", 18))
+        # if check_if_inside(z, self.hull, self.canv):
+        #     self.canv.create_text(200, 200, text="Inside",
+        #                           anchor=SE, fill="red", font=("Purisa", 18))
+        #     print("Inside")
+        # else:
+        #     print("Outside")
+        #     self.canv.create_text(200, 200, text="Outside",
+        #                           anchor=SE, fill="red", font=("Purisa", 18))
 
     def update_view(self):
         self.canv.delete("all")
@@ -85,10 +71,6 @@ class SmoothConvex(Frame):
         self.update_view()
 
 
-def area(a: Point, b: Point, c: Point):
-    return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x)
-
-
 def quick_hull(l: Point, r: Point, candidates: List[Point], quick_hull_res: List[Point]):
     best = 0
     actual_candidates: List[Point] = []
@@ -105,14 +87,6 @@ def quick_hull(l: Point, r: Point, candidates: List[Point], quick_hull_res: List
         quick_hull(chosen, r, actual_candidates, quick_hull_res)
 
     return quick_hull_res
-
-
-def left(candidates: List[Point]):
-    res = candidates[0]
-    for p in candidates:
-        if p.x < res.x:
-            res = p
-    return res
 
 
 def draw_hull(vertexes: List[Point], canvas: Canvas):
@@ -141,55 +115,40 @@ def hull_median(hull: List[Point]) -> Point:
     return median
 
 
-def check_if_inside(z: Point, hull: List[Point], canvas: Canvas) -> bool:
-    median = hull_median(hull)
-    canvas.create_oval(median.x - 5, median.y - 5, median.x + 5, median.y + 5, fill="black",
-                       width=4, outline="green")
-    h = sorted(hull, key=lambda point: point.polar_angle(median))
-    i = 0
-    for p in h:
-        canvas.create_text(p.x, p.y, text=str(i),
-                           anchor=SE, fill="red", font=("Purisa", 18))
-        i += 1
-    return inside_check(z, h, median)
+# def check_if_inside(z: Point, hull: List[Point], canvas: Canvas) -> bool:
+#     median = hull_median(hull)
+#     canvas.create_oval(median.x - 5, median.y - 5, median.x + 5, median.y + 5, fill="black",
+#                        width=4, outline="green")
+#     h = sorted(hull, key=lambda point: point.polar_angle(median))
+#     i = 0
+#     for p in h:
+#         canvas.create_text(p.x, p.y, text=str(i),
+#                            anchor=SE, fill="red", font=("Purisa", 18))
+#         i += 1
+#     return inside_check(z, h, median)
 
 
-def inside_check(z: Point, hull: List[Point], median: Point) -> bool:
-    n = len(hull)
-    pq = Point(z.x - hull[0].x, z.y - hull[0].y)
-
-    l = 0
-    r = len(hull)
-    while r - l > 1:
-        mid = (l + r) // 2
-        cur = Point(hull[mid].x - hull[0].x, hull[mid].y - hull[0].y)
-        if cross_product(cur, pq) < 0:
-            r = mid
-        else:
-            l = mid
-    print("found between ", l, r)
-
-    if l == n - 1:
-        return sq_dist(hull[0], z) <= sq_dist(hull[0], hull[l])
-    else:
-        left_vector = Point(hull[l + 1].x - hull[l].x, hull[l + 1].y - hull[l].y)
-        right_vector = Point(z.x - hull[l].x, z.y - hull[l].y)
-    return cross_product(left_vector, right_vector) >= 0
-
-
-def sq_dist(a, b):
-    return (a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y)
-
-
-def cross_product(a, b):
-    return a.x * b.y - b.x * a.y
-
-
-def cross_product_orientation(a: Point, b: Point, c: Point):
-    return (b.y - a.y) * \
-           (c.x - a.x) - \
-           (b.x - a.x) * \
-           (c.y - a.y)
+# def inside_check(z: Point, hull: List[Point], median: Point) -> bool:
+#     n = len(hull)
+#     pq = Point(z.x - hull[0].x, z.y - hull[0].y)
+#
+#     l = 0
+#     r = len(hull)
+#     while r - l > 1:
+#         mid = (l + r) // 2
+#         cur = Point(hull[mid].x - hull[0].x, hull[mid].y - hull[0].y)
+#         if cross_product(cur, pq) < 0:
+#             r = mid
+#         else:
+#             l = mid
+#     print("found between ", l, r)
+#
+#     if l == n - 1:
+#         return sq_dist(hull[0], z) <= sq_dist(hull[0], hull[l])
+#     else:
+#         left_vector = Point(hull[l + 1].x - hull[l].x, hull[l + 1].y - hull[l].y)
+#         right_vector = Point(z.x - hull[l].x, z.y - hull[l].y)
+#     return cross_product(left_vector, right_vector) >= 0
 
 
 def task1_runner():
