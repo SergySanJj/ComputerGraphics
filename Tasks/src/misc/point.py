@@ -1,6 +1,8 @@
 import math
 from typing import List
 
+eps = 0.00001
+
 
 class Point:
     def __init__(self, x, y):

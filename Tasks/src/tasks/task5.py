@@ -3,8 +3,8 @@ import tkinter as tk
 from tkinter import *
 from typing import List
 
-# quick hull + point detection
 from src.misc.point import Point, area, left
+from src.misc.polygon import draw_polygon
 
 
 class SmoothConvex(Frame):
@@ -64,7 +64,7 @@ class SmoothConvex(Frame):
         l = left(self.vertexes)
         r = Point(l.x, l.y - 0.001)
         self.hull = quick_hull(l, r, self.vertexes, [])
-        draw_hull(self.hull, self.canv)
+        draw_polygon(self.hull, self.canv)
 
     def on_clear(self):
         self.vertexes = []
@@ -87,19 +87,6 @@ def quick_hull(l: Point, r: Point, candidates: List[Point], quick_hull_res: List
         quick_hull(chosen, r, actual_candidates, quick_hull_res)
 
     return quick_hull_res
-
-
-def draw_hull(vertexes: List[Point], canvas: Canvas):
-    if len(vertexes) < 2:
-        return
-    line_values = []
-    for p in vertexes:
-        line_values.append(p.x)
-        line_values.append(p.y)
-    p = vertexes[0]
-    line_values.append(p.x)
-    line_values.append(p.y)
-    canvas.create_line(line_values)
 
 
 def hull_median(hull: List[Point]) -> Point:
@@ -151,7 +138,7 @@ def hull_median(hull: List[Point]) -> Point:
 #     return cross_product(left_vector, right_vector) >= 0
 
 
-def task1_runner():
+def task5_runner():
     root = Tk()
     root.geometry("1000x800")
     root.resizable(False, False)
