@@ -80,22 +80,33 @@ def simple_polygon_hull(vertexes: List[Point], canvas: Canvas) -> List[Point]:
     q0, left_ind = left_most(vertexes)
     qm, right_ind = right_most(vertexes)
 
-    Q = [q0]
-    polygon_part_hull(Q, canvas, left_ind, right_ind, vertexes)
-    polygon_part_hull(Q, canvas, right_ind, left_ind, vertexes)
+    Q = get_chain_hull(vertexes, left_ind, right_ind) + get_chain_hull(vertexes, right_ind, left_ind)
 
     return Q
 
 
-def polygon_part_hull(Q, canvas, left_ind, right_ind, vertexes):
-    curr = left_ind
-    while curr != right_ind:
-        p, curr = next_in(vertexes, curr)
-        canvas.create_text(p.x, p.y, text=str(curr), anchor=SE, fill="red", font=("Purisa", 18))
+def get_chain_hull(chain: List[Point], left_ind, right_ind) -> List[Point]:
+    half_hull: List[Point] = []
+    first = chain[left_ind]
 
-        while len(Q) > 1 and cross_product_orientation(Q[-2], Q[-1], p) >= 0:
-            Q.pop()
-        Q.append(p)
+    dummyNode = Point(first.x, first.y - eps)
+    half_hull.append(dummyNode)
+    half_hull.append(first)
+
+    i = left_ind
+    while i != right_ind:
+        print(len(half_hull))
+        next_to_peek = half_hull[len(half_hull) - 2]
+        curr_node = chain[i]
+
+        if not left(next_to_peek, curr_node, half_hull[len(half_hull) - 1]):
+            if left(chain[right_ind], half_hull[len(half_hull) - 1], curr_node) or i == right_ind:
+                half_hull.append(curr_node)
+            p, i = next_in(chain, i)
+        else:
+            half_hull.pop()
+
+    return half_hull
 
 
 def task8_runner():
