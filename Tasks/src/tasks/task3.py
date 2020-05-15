@@ -94,7 +94,7 @@ class Node:
 
     def connect(self, other):
         self.connected.append(other)
-        # other.connected.append(self)
+        other.connected.append(self)
 
     def __eq__(self, other):
         return abs(self.x - other.x) < 1 and abs(self.y - other.y) < 1
@@ -106,12 +106,23 @@ class Edge:
         self.end = end
 
     def intersects(self, other):
+        if close_by_y(self.start, other.start):
+            return Point(self.start.x, self.start.y)
+        if close_by_y(self.end, other.end):
+            return Point(self.end.x, self.end.y)
+
         pl = segment_intersect([[self.start.x, self.start.y], [self.end.x, self.end.y]],
                                [[other.start.x, other.start.y], [other.end.x, other.end.y]])
         if pl is not None:
             return Point(pl[0], pl[1])
         else:
             return None
+
+
+def close_by_y(a, b):
+    if abs(a.x - b.x) < eps:
+        return True
+    return False
 
 
 def slope(p1, p2):
@@ -244,6 +255,7 @@ class Graph:
                         Node(Point(self.g[i].x + infitous, self.g[i].y)))
             edge1 = Edge(Node(Point(self.g[i + 1].x - infitous, self.g[i + 1].y)),
                          Node(Point(self.g[i + 1].x + infitous, self.g[i + 1].y)))
+
             for pc in self.g:
                 for con in pc.connected:
                     e = Edge(pc, con)
@@ -255,12 +267,22 @@ class Graph:
                     if inter1 is not None:
                         draw_misc_point(canvas, diam, inter1)
 
+                    if inter is None:
+                        if abs(pc.y - self.g[i].y) < eps:
+                            inter = Point(pc.x, pc.y)
+                    if inter1 is None:
+                        if abs(con.y - self.g[i + 1].y) < eps:
+                            inter = Point(con.x, con.y)
+
                     if inter is not None and inter1 is not None:
+                        canvas.create_line([inter.x, inter.y, inter1.x, inter1.y], fill="pink", width=3)
                         self.stripes[i].append(Edge(Node(inter), Node(inter1)))
 
             self.stripes[i].append(
                 Edge(Node(Point(+ infitous, self.g[i].y)),
                      Node(Point(+ infitous, self.g[i + 1].y))))
+
+            self.stripes[i].sort(key=lambda e: (e.start.x+e.end.x)/2.)
 
 
 def draw_misc_point(canvas, diam, point):
@@ -296,20 +318,17 @@ def find_in_stripe(stripe: List[Edge], p: Point):
         m_orient = left(ms, me, p)
 
         if same_sign(m_orient, l_orient):
-            r_pos = mid
-        else:
             l_pos = mid
+        else:
+            r_pos = mid
 
-    # return l_pos
-    res = brute_stripe(stripe, p)
-    print(res)
-    return res
+    return l_pos
 
 
 def brute_stripe(stripe: List[Edge], p: Point):
+    print("stripe len", len(stripe))
     i = 0
-    fl = True
-    while fl and i < len(stripe) - 1:
+    while i < len(stripe) - 2:
         ls = Point(stripe[i].start.x, stripe[i].start.y)
         le = Point(stripe[i].end.x, stripe[i].end.y)
         l_orient = left(ls, le, p)
