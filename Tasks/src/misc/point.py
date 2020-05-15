@@ -63,11 +63,11 @@ def right_most(candidates: List[Point]) -> (Point, int):
 
 
 def left(a, b, c) -> bool:
-    return area(a, b, c) > 0  # предикат проти годинникової стрілки
+    return area(a, b, c) > 0
 
 
 def collinear(a, b, c) -> bool:
-    return area(a, b, c) == 0  # перевірка трьох точок на коллінеарність
+    return area(a, b, c) == 0
 
 
 def between(a, b, point) -> bool:
